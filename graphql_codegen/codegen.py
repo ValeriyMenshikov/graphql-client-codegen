@@ -13,8 +13,8 @@ def generate_client_code(schema_file):
 # ... Код клиента на основе GraphQL schema.json
 from sgqlc.types import ContainerTypeMeta, non_null
 from schema import *
-from graphql.client import GraphQLClient
-from graphql.errors import GraphQLClientError
+from graphql_codegen.base_client.client import GraphQLClient
+from graphql_codegen.base_client.errors import GraphQLClientError
 
 
 class GraphQLApiClient:
@@ -94,13 +94,13 @@ class GraphQLApiClient:
 
                 args = [inflection.underscore(arg["name"]) for arg in field.get("args", [])]
                 arguments = ", ".join([f'{k}: {v}' for k, v in merged_dict.items()])
-                response_model = field.get('type').get('name') or 'non_null(MutationResult)'
+                response_model = field.get('type').get('name') or f"non_null({field.get('type').get('ofType').get('name')})"
                 fields.append({
                     "field_name": inflection.underscore(field["name"]),
                     "query_name": field["name"],
                     "arguments": arguments,
                     "response_model": response_model,
-                    "operation_type": 'query' if query_type == 'query' else 'mutation',
+                    "operation_type": query_type.lower(),
                     "args": args
                 })
             client_context["types"].append({
@@ -113,11 +113,53 @@ class GraphQLApiClient:
     return client_code
 
 
-schema_file = "schema.json"
+def generate_tests_code(schema_file):
+    with open(schema_file, "r") as file:
+        schema_data = json.load(file)
 
-client_code = generate_client_code(schema_file)
+    # Генерация кода автотестов
+    tests_template = """
+    import logging
+    import unittest
+    from graphql_client import GraphQLClient
 
-print("Код клиента на основе schema.json:")
+    class GraphQLTests(unittest.TestCase):
+        def setUp(self):
+            self.client = ... GraphQLClient("{{endpoint}}")
+            self.logger = logging.getLogger(__name__)
 
-with open('result.py', 'w') as file:
-    file.write(client_code)
+        {{#types}}
+        {{#fields}}
+        def test_{{field_name}}(self):
+            # Создание запроса
+            # Вызов метода клиента
+            # Проверка результата
+            pass
+        {{/fields}}
+        {{/types}}
+
+    if __name__ == "__main__":
+        unittest.main()
+    """
+
+    tests_context = {
+        "types": [],
+        "endpoint": "https://example.com/graphql"
+    }
+
+    for type_data in schema_data["data"]["__schema"]["types"]:
+        if type_data["kind"] == "OBJECT":
+            fields = []
+            for field in type_data["fields"]:
+                fields.append({
+                    "field_name": field["name"]
+                })
+
+            tests_context["types"].append({
+                "type_name": type_data["name"],
+                "fields": fields
+            })
+
+    tests_code = pystache.render(tests_template, tests_context)
+
+    return tests_code

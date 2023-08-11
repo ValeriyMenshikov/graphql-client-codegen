@@ -1,0 +1,4 @@
+pytest
+sgqlc
+structlog
+requests
