@@ -3,10 +3,10 @@ from datetime import datetime
 
 import pytest
 
-from graphql_api import GraphQLApiClient
+from graphql_client.graphql_api import GraphQLApiClient
+from graphql_client.schema import *
 import structlog
 
-from schema import RegistrationInput
 
 structlog.configure(
     processors=[

@@ -1,9 +1,8 @@
 client_template = """
-# ... Код клиента на основе GraphQL schema.json
 from sgqlc.types import ContainerTypeMeta, non_null
-from schema import *
-from graphql_codegen.base_client.client import GraphQLClient
-from graphql_codegen.base_client.errors import GraphQLClientError
+from .schema import *
+from graphql_codegen.public.base_client.client import GraphQLClient
+from graphql_codegen.public.base_client.errors import GraphQLClientError
 
 
 class GraphQLApiClient:

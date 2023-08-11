@@ -1,9 +1,13 @@
-from graphql_codegen.codegen import generate_client_code
+from graphql_codegen.internal.codegen.codegen import parse_graphql_json_schema, gen_tests_code, gen_client_code
 
 schema_file = "../schema.json"
 
 
 def test_client_codegen():
-    client_code = generate_client_code(schema_file)
+    params_object = parse_graphql_json_schema(schema_file)
+
     with open('../graphql_api.py', 'w') as file:
-        file.write(client_code)
+        file.write(gen_client_code(params_object))
+
+    with open('../tests_handlers.py', 'w') as file:
+        file.write(gen_tests_code(params_object))

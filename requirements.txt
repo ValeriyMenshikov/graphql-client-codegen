@@ -4,3 +4,4 @@ structlog
 requests
 pystache
 inflection
+click
