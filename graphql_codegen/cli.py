@@ -31,7 +31,14 @@ def main():
     required=False,
     help="Target directory name for GraphQL schema",
 )
-@click.argument("settings", nargs=-1, type=click.UNPROCESSED)
+@click.option(
+    "-c",
+    "--only_client",
+    default=True,
+    required=False,
+    help="Target directory name for GraphQL schema",
+)
+# @click.argument("settings", nargs=-1, type=click.UNPROCESSED)
 def gen(*args, **kwargs):
     """
     Generate GraphQL client
@@ -39,7 +46,7 @@ def gen(*args, **kwargs):
     Command examples:
         graphql_codegen gen -u http://localhost:5051/graphql
     """
-    run(*args, **kwargs)
+    return run(*args, **kwargs)
 
 
 if __name__ == "__main__":
