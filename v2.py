@@ -9,14 +9,12 @@ def generate_client_code(schema_file):
     with open(schema_file, "r") as file:
         schema_data = json.load(file)
 
-    # Генерация кода клиента
     client_template = """
 # ... Код клиента на основе GraphQL schema.json
 from sgqlc.types import ContainerTypeMeta, non_null
 from schema import *
 from graphql.client import GraphQLClient
 from graphql.errors import GraphQLClientError
-
 
 
 class GraphQLApiClient:
@@ -33,14 +31,6 @@ class GraphQLApiClient:
 
     @staticmethod
     def _convert_to_model(response: dict, query_name: str, model: ContainerTypeMeta):
-        '''
-        Метод преобразует json dict ответ в соответсвующую ResponseModel, в противном случае отдает
-        полный json dict
-        :param response: GraphQL response
-        :param query_name: mutation or query name
-        :param model: GraphQL response model from schema
-        :return:
-        '''
         json_data = response.get('data', {}).get(query_name)
         if json_data:
             return model(json_data)
@@ -49,7 +39,6 @@ class GraphQLApiClient:
     {{#types}}
     {{#fields}}
     def {{field_name}}(self, {{arguments}}) -> {{response_model}} | dict:
-
         query_name = '{{query_name}}'
         {{operation_type}} = self.client.{{operation_type}}(name=query_name)
         {{operation_type}}.{{field_name}}(
@@ -57,9 +46,7 @@ class GraphQLApiClient:
             {{.}}={{.}},
         {{/args}}
         )
-        
         response = self.client.request(query={{operation_type}})
-
         response = self._convert_to_model(
             response=response,
             query_name=query_name,
@@ -75,36 +62,39 @@ class GraphQLApiClient:
         "types": []
     }
 
+    # map_types = {
+    #     'String': 'str',
+    #     'Boolean': 'bool',
+    #     'Integer': 'int',
+    #     'UUID': 'str'
+    # }
+
     for type_data in schema_data["data"]["__schema"]["types"]:
         query_type = type_data.get('name')
-        if query_type in (
-                'Mutation',
-                'Query',
-        ):
+        if query_type in ('Mutation', 'Query'):
             fields = []
             for field in type_data["fields"]:
-                # map_types = {
-                #     'String': 'str',
-                #     'Boolean': 'bool',
-                #     'Integer': 'int',
-                #     'UUID': 'str'
-                # }
+
+                # args_types = [
+                #     {
+                #         inflection.underscore(arg["name"]): map_types.get(arg['type']['name'], arg['type']['name']) or
+                #                                             map_types[arg['type']['ofType']['name']]
+                #     } for arg in field.get("args", [])
+                # ]
+
                 args_types = [
                     {
                         inflection.underscore(arg["name"]): arg['type']['name'] or arg['type']['ofType']['name']
                     } for arg in field.get("args", [])
                 ]
-
                 merged_dict = {}
+
                 for dictionary in args_types:
                     merged_dict.update(dictionary)
 
                 args = [inflection.underscore(arg["name"]) for arg in field.get("args", [])]
-
                 arguments = ", ".join([f'{k}: {v}' for k, v in merged_dict.items()])
-
-                response_model = field.get('type').get('name') or 'MutationResult'
-
+                response_model = field.get('type').get('name') or 'non_null(MutationResult)'
                 fields.append({
                     "field_name": inflection.underscore(field["name"]),
                     "query_name": field["name"],
@@ -112,83 +102,22 @@ class GraphQLApiClient:
                     "response_model": response_model,
                     "operation_type": 'query' if query_type == 'query' else 'mutation',
                     "args": args
-
                 })
-
             client_context["types"].append({
                 "type_name": type_data["name"],
                 "fields": fields,
             })
 
-    # pprint.pprint(client_context)
     client_code = pystache.render(client_template, client_context)
 
     return client_code
 
 
-def generate_tests_code(schema_file):
-    with open(schema_file, "r") as file:
-        schema_data = json.load(file)
-
-    # Генерация кода автотестов
-    tests_template = """
-    import logging
-    import unittest
-    from graphql_client import GraphQLClient
-
-    class GraphQLTests(unittest.TestCase):
-        def setUp(self):
-            self.client = ... GraphQLClient("{{endpoint}}")
-            self.logger = logging.getLogger(__name__)
-
-        {{#types}}
-        {{#fields}}
-        def test_{{field_name}}(self):
-            # Создание запроса
-            # Вызов метода клиента
-            # Проверка результата
-            pass
-        {{/fields}}
-        {{/types}}
-
-    if __name__ == "__main__":
-        unittest.main()
-    """
-
-    tests_context = {
-        "types": [],
-        "endpoint": "https://example.com/graphql"
-    }
-
-    for type_data in schema_data["data"]["__schema"]["types"]:
-        if type_data["kind"] == "OBJECT":
-            fields = []
-            for field in type_data["fields"]:
-                fields.append({
-                    "field_name": field["name"]
-                })
-
-            tests_context["types"].append({
-                "type_name": type_data["name"],
-                "fields": fields
-            })
-
-    tests_code = pystache.render(tests_template, tests_context)
-
-    return tests_code
-
-
-# Использование
 schema_file = "schema.json"
 
 client_code = generate_client_code(schema_file)
-tests_code = generate_tests_code(schema_file)
 
 print("Код клиента на основе schema.json:")
 
 with open('result.py', 'w') as file:
     file.write(client_code)
-# print(client_code)
-
-print("\nКод автотестов на основе schema.json:")
-# print(tests_code)
