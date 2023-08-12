@@ -1,4 +1,4 @@
-test_template = """from schema import *
+test_template = """from ..graphql_client.schema import *
 
 
 class Tests{{class_name}}:

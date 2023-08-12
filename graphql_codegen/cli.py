@@ -32,9 +32,9 @@ def main():
     help="Target directory name for GraphQL schema",
 )
 @click.option(
-    "-c",
-    "--only_client",
-    default=True,
+    "-m",
+    "--make_tests",
+    default=False,
     required=False,
     help="Target directory name for GraphQL schema",
 )
