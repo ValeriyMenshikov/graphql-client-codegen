@@ -16,7 +16,7 @@ def get_args_and_types(args):
     return args_and_types
 
 
-def parse_graphql_json_schema(schema_file):
+def parse_shema_json(schema_file):
     with open(schema_file, "r") as file:
         schema_data = json.load(file)
 
@@ -52,17 +52,22 @@ def parse_graphql_json_schema(schema_file):
     return params_object
 
 
-def gen_client_code(params_object):
+def generate_client_library(params_object):
+    """
+
+    :param params_object:
+    :return:
+    """
     client_code = pystache.render(client_template, params_object)
     return client_code
 
 
-def gen_tests_code(params_object):
+def generate_tests(params_object):
     tests_code = pystache.render(tests_template, params_object)
     return tests_code
 
 
-def gen_tests_in_other_files(params_object):
+def generate_tests_dictionary(params_object):
     tests = {}
     for type in params_object['types']:
         for field in type['fields']:

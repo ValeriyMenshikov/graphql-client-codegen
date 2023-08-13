@@ -1,5 +1,5 @@
-from graphql_codegen.internal.codegen.codegen import parse_graphql_json_schema, gen_client_code, \
-    gen_tests_in_other_files
+from graphql_codegen.internal.codegen.codegen import parse_shema_json, generate_client_library, \
+    generate_tests_dictionary
 from graphql_codegen.internal.codegen.schema_gen import get_schema, generate_schema
 from pathlib import Path
 
@@ -28,8 +28,8 @@ def run(url, output_dir, make_tests):
     get_schema(url=url, destination_path=schema_json)
     generate_schema(json_schema=schema_json, destination_path=f"{graphql_package}/schema.py")
 
-    params_object = parse_graphql_json_schema(schema_file=schema_json)
-    client = gen_client_code(params_object)
+    params_object = parse_shema_json(schema_file=schema_json)
+    client = generate_client_library(params_object)
 
     create_file_with_content(f"{graphql_package}/graphql_api.py", client)
 
@@ -39,7 +39,7 @@ def run(url, output_dir, make_tests):
 
 
 def create_tests(destination_path, params_object):
-    all_tests_in_another_files = gen_tests_in_other_files(params_object)
+    all_tests_in_another_files = generate_tests_dictionary(params_object)
     tests_dir = destination_path.joinpath("tests")
     tests_dir.mkdir(exist_ok=True)
     create_init_file(tests_dir)
