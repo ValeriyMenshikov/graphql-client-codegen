@@ -24,7 +24,3 @@ def write_tests(tests, output_dir):
     for name, code in tests.items():
         test_path = tests_dir.joinpath(f"test_{name}.py")
         write_code_to_file(test_path, code)
-
-
-if __name__ == '__main__':
-    run(url='http://5.63.153.31:5051/graphql/', service_name='account_api', output_dir='./client', make_tests=True)
