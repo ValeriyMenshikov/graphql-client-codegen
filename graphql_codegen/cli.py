@@ -1,11 +1,6 @@
-import logging
 import sys
-
 import click
-
-
-
-
+from graphql_codegen.runner import run
 
 
 @click.group()
