@@ -5,7 +5,7 @@ from graphql_codegen.public.base_client.client import GraphQLClient
 from graphql_codegen.public.base_client.errors import GraphQLClientError
 
 
-class GraphQLApiClient:
+class GraphQL{{service_name}}Client:
     def __init__(self, host: str, headers: dict = None, disable_log: bool = False):
         self.host = host
         self.headers = headers

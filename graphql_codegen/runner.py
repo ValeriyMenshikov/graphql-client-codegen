@@ -1,53 +1,30 @@
-from graphql_codegen.internal.codegen.codegen import parse_shema_json, generate_client_library, \
-    generate_tests_dictionary
-from graphql_codegen.internal.codegen.schema_gen import get_schema, generate_schema
+from graphql_codegen.internal.codegen.codegen import GraphQLCodegen
+from graphql_codegen.internal.codegen.schema_gen import SchemaGen
+from graphql_codegen.internal.codegen.utils import write_code_to_file, create_directory
 from pathlib import Path
 
 
-def create_init_file(directory):
-    Path(directory.joinpath("__init__.py")).touch()
-
-
-def create_file_with_content(file_path, content):
-    Path(file_path).write_text(content)
-
-
-def run(url, output_dir, make_tests):
+def run(url, output_dir, service_name, make_tests):
     # Создание пакета
-    destination_path = Path(output_dir)
-    destination_path.mkdir(exist_ok=True)
-    create_init_file(destination_path)
-
-    # Получение json схемы и создание пакета с клиентом и схемой
-    schema_json = destination_path.joinpath("schema.json")
-    graphql_package = destination_path.joinpath("graphql_client")
-
-    graphql_package.mkdir(exist_ok=True)
-    create_init_file(graphql_package)
-
-    get_schema(url=url, destination_path=schema_json)
-    generate_schema(json_schema=schema_json, destination_path=f"{graphql_package}/schema.py")
-
-    params_object = parse_shema_json(schema_file=schema_json)
-    client = generate_client_library(params_object)
-
-    create_file_with_content(f"{graphql_package}/graphql_api.py", client)
+    schema = SchemaGen(url=url, output=output_dir)
+    schema.generate_sgql_types()
+    codegen = GraphQLCodegen(json_schema=schema.json_schema, service_name=service_name)
+    client_code_text = codegen.generate_client_library()
+    write_code_to_file(file_path=Path(output_dir).joinpath(f'{service_name}.py'), content=client_code_text)
 
     # Генерация тестов
     if make_tests:
-        create_tests(destination_path, params_object)
+        tests = codegen.generate_tests_dictionary()
+        write_tests(tests=tests, output_dir=output_dir)
 
 
-def create_tests(destination_path, params_object):
-    all_tests_in_another_files = generate_tests_dictionary(params_object)
-    tests_dir = destination_path.joinpath("tests")
-    tests_dir.mkdir(exist_ok=True)
-    create_init_file(tests_dir)
+def write_tests(tests, output_dir):
+    tests_dir = create_directory(Path(output_dir).joinpath('tests'))
 
-    for name, code in all_tests_in_another_files.items():
+    for name, code in tests.items():
         test_path = tests_dir.joinpath(f"test_{name}.py")
-        create_file_with_content(test_path, code)
+        write_code_to_file(test_path, code)
 
 
 if __name__ == '__main__':
-    run(url='http://localhost:5051/graphql', output_dir='./client', make_tests=True)
+    run(url='http://5.63.153.31:5051/graphql/', service_name='account_api', output_dir='./client', make_tests=True)

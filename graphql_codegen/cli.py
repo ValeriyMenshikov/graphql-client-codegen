@@ -1,8 +1,11 @@
+import logging
 import sys
 
 import click
 
-from graphql_codegen.runner import run
+
+
+
 
 
 @click.group()
@@ -30,6 +33,13 @@ def main():
     default="generated_schemas",
     required=False,
     help="Target directory name for GraphQL schema",
+)
+@click.option(
+    "-s",
+    "--service_name",
+    default="api",
+    required=False,
+    help="module and class name for you graphql api",
 )
 @click.option(
     "-m",
