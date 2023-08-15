@@ -94,7 +94,7 @@ from ..schema import *
 class TestsAccountCurrent:
 
     def test_account_current(self, client):
-        # Заполни тестовые данные
+        # fill test data
         access_token: String = None
         response = client.account_current(
             access_token=access_token,
