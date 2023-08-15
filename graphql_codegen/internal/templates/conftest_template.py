@@ -1,9 +1,7 @@
-tests_template = """import pytest
+conftest_template = """import pytest
 
-from graphql_api import GraphQLApiClient
+from ..{{module_name}} import GraphQL{{service_name}}Client
 import structlog
-
-from schema import *
 
 structlog.configure(
     processors=[
@@ -14,5 +12,5 @@ structlog.configure(
 
 @pytest.fixture
 def client():
-    return GraphQLApiClient(host='http://localhost:5051/graphql')
+    return GraphQL{{service_name}}Client(host='{{url}}')
 """

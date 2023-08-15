@@ -5,19 +5,26 @@ from graphql_codegen.internal.codegen.parser import _JsonSchemaParser
 from graphql_codegen.internal.templates.client_template import client_template
 from graphql_codegen.internal.templates.tests_template import tests_template
 from graphql_codegen.internal.templates.test_template import test_template
+from graphql_codegen.internal.templates.conftest_template import conftest_template
 import inflection
 
 
 class GraphQLCodegen(_JsonSchemaParser):
-    def __init__(self, json_schema, service_name):
+    def __init__(self, url, json_schema, service_name):
         self.service_name = service_name
         super().__init__(json_schema)
+        self.params['module_name'] = service_name
         self.params['service_name'] = inflection.camelize(service_name)
+        self.params['url'] = url
 
     def generate_client_library(self):
         logger.info(f'Generate python client code')
         client_code = pystache.render(client_template, self.params)
         return client_code
+
+    def generate_conftest(self):
+        conftest_code = pystache.render(conftest_template, self.params)
+        return conftest_code
 
     def generate_tests(self):
         logger.info(f'Generate all tests code in file')
