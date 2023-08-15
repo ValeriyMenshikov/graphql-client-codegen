@@ -3,7 +3,7 @@
 Test generator and client library for GraphQL API automated testing.
 The generated methods also include logging.
 
-## Установка
+## Install
 
 Use `pip` to install the package.:
 
@@ -11,7 +11,7 @@ Use `pip` to install the package.:
 pip install git+https://github.com/ValeriyMenshikov/graphql-client-codegen.git
 ```
 
-## Использование
+## How to use
 
 Run command:
 
